@@ -1,6 +1,7 @@
 package analyzeflowcode.graph;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -10,10 +11,12 @@ import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 import aQute.bnd.service.Plugin;
 import analyzeflowcode.analyzer.FunctionAnalyzer;
 import analyzeflowcode.functions.FunctionMetrics;
+import docking.GenericHeader;
 import ghidra.app.services.GoToService;
 import ghidra.graph.viewer.vertex.AbstractVisualVertex;
 import ghidra.program.model.listing.Function;
@@ -27,9 +30,46 @@ import ghidra.program.model.listing.Function;
 public class FunctionMetricsVisualVertex extends AbstractVisualVertex {
 
 	private FunctionMetrics functionMetrics;
+	private JPanel panel;
+	private GenericHeader head;
+	private boolean compressed;
 	
 	public FunctionMetricsVisualVertex(Function f) {
 		this.functionMetrics = new FunctionMetrics(f);
+		this.compressed      = false;
+		this.buildComponent();
+	}
+
+	public boolean getCompressed() { return this.compressed; }
+
+	public void setCompressed(boolean is) { 
+		this.compressed = is; 
+		if(is) { this.head.setTitle("[...] " + this.getMetrics().getName()); }
+		else   { this.head.setTitle(this.getMetrics().getName()); }
+	}
+	
+	public void buildComponent() {
+		int counter = 0;
+		JPanel temp_panel = new JPanel(new FlowLayout());		
+		this.panel = new JPanel();
+		
+		this.head = new GenericHeader();
+		this.head.setTitle(this.getMetrics().getName());
+		this.head.setNoWrapToolbar(true);
+		
+		this.panel.setLayout(new BorderLayout());
+		this.panel.add(this.head, BorderLayout.NORTH);
+		
+		for(FunctionAnalyzer a: this.getMetrics().getAnalyzers()) {
+			if(counter == 2) {
+				this.panel.add(temp_panel);
+				temp_panel = new JPanel(new FlowLayout());
+			}
+			counter = (counter+1)%2;
+			temp_panel.add(a.getComponent());
+		}
+
+		if(counter != 2) { this.panel.add(temp_panel); }
 	}
 	
 	/**
@@ -47,32 +87,23 @@ public class FunctionMetricsVisualVertex extends AbstractVisualVertex {
 		return ((FunctionMetricsVisualVertex)other).getMetrics() == this.getMetrics();
 	}
 	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		String name = this.getMetrics().getName();
+		result = prime * result + name.hashCode();
+		return result;
+	}
+	
 	public FunctionMetrics getMetrics() { return this.functionMetrics; }
 	
 	//
 	// Extends AbstractVisualVertex
 	//
 	@Override
-	public JComponent getComponent() {
-		int counter = 0;
-		JPanel temp_panel = new JPanel(new FlowLayout());		
-		JPanel panel = new JPanel();
-		
-		panel.setLayout(new BorderLayout());
-		panel.add(new JLabel(this.getMetrics().getName()), BorderLayout.NORTH);
-		
-		for(FunctionAnalyzer a: this.getMetrics().getAnalyzers()) {
-			if(counter == 2) {
-				panel.add(temp_panel);
-				temp_panel = new JPanel(new FlowLayout());
-			}
-			counter = (counter+1)%2;
-			temp_panel.add(a.getComponent());
-		}
-
-		if(counter != 2) { panel.add(temp_panel); }
-
-		return panel;
+	public JComponent getComponent() {		
+		return this.panel;
 	}
 
 	@Override

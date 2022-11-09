@@ -1,6 +1,13 @@
 package analyzeflowcode.graph;
 
 import java.awt.BorderLayout;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -65,11 +72,51 @@ public class FunctionMetricsVisualGraphComponentProvider extends ComponentProvid
 			}
 			
 		});
+		this.view.setVertexClickListener(new VertexClickListener<>() {
+
+			@Override
+			public boolean vertexDoubleClicked(FunctionMetricsVisualVertex v,
+					VertexMouseInfo<FunctionMetricsVisualVertex, FunctionMetricsVisualEdge> mouseInfo) {
+				v.setCompressed(!v.getCompressed());
+				setCompressed(v, v.getCompressed());
+				return true;
+			}
+			
+		});
 		this.component = this.view.getViewComponent();
 		this.mainPanel = new JPanel(new BorderLayout());
 		this.mainPanel.add(this.component, BorderLayout.CENTER);
 	}
 
+	private void setCompressed(FunctionMetricsVisualVertex v, boolean filter) {
+		List<FunctionMetricsVisualVertex> toTraverse;
+		HashSet<FunctionMetricsVisualVertex> marqued  = new HashSet<>();
+		HashSet<FunctionMetricsVisualVertex> filtered = new HashSet<>(); 
+		FunctionMetricsVisualVertex traversed;
+		
+		Iterator<FunctionMetricsVisualVertex> i = this.graph.getFilteredVertices();
+		while(i.hasNext()) { filtered.add(i.next()); }
+		
+		this.graph.clearFilter();
+
+		toTraverse = StreamSupport
+              	.stream(this.graph.getSuccessors(v).spliterator(), false)
+              	.collect(Collectors.toList());
+		
+		while(toTraverse.size() != 0) {
+			traversed = toTraverse.remove(0);
+			filtered.remove(traversed);
+			if(marqued.contains(traversed)) { continue; }
+			marqued.add(traversed);
+			for(FunctionMetricsVisualVertex s: this.graph.getSuccessors(traversed)) {
+				toTraverse.add(s);
+			}
+		}
+		
+		if(filter) { this.graph.filterVertices(marqued); }
+		else       { this.graph.filterVertices(filtered); }
+	}
+	
 	private void buildGraph() {
 		graph = this.plugin.createGraph();
 
