@@ -64,5 +64,6 @@ public class FunctionMetrics {
 	
 	public void addDefaultAnalyzers() {
 		this.addAnalyzer(new CountInstructionsAnalyzer());
+		this.addAnalyzer(new SyscallAnalyzer());
 	}
 }

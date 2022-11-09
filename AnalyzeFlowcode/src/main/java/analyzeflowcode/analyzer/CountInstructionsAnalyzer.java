@@ -27,7 +27,7 @@ import ghidra.program.model.listing.Instruction;
 public class CountInstructionsAnalyzer extends FunctionAnalyzer {
 	
 	private boolean done   = false;
-	private long    count  = 0;	
+	public long    count  = 0;
 	private JPanel  panel  = new JPanel(new FlowLayout());
 	private JLabel  jcount = new JLabel();
 			

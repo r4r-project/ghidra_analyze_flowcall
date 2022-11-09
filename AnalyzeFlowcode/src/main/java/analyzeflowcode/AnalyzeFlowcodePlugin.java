@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import analyzeflowcode.analyzer.CountInstructionsAnalyzer;
+import analyzeflowcode.analyzer.SyscallAnalyzer;
 import analyzeflowcode.graph.FunctionMetricsVisualEdge;
 import analyzeflowcode.graph.FunctionMetricsVisualGraph;
 import analyzeflowcode.graph.FunctionMetricsVisualGraphComponentProvider;
@@ -118,17 +120,18 @@ public class AnalyzeFlowcodePlugin extends ProgramPlugin {
 		FunctionMetricsVisualVertex current;
 		FunctionMetricsVisualVertex calledVertex;
 		this.flatApi = new FlatProgramAPI(this.currentProgram, this.getMonitor());
-		
 		GRAPH = new FunctionMetricsVisualGraph();
-		GRAPH.removeEdges(GRAPH.getEdges());
-		GRAPH.removeVertices(GRAPH.getVertices());
 
 		toTraverse.add(new FunctionMetricsVisualVertex(entrypoint));
+		vertices.put(toTraverse.get(0).getMetrics().getName(), toTraverse.get(0));
+		
+		this.getMonitor().setMessage("Begin graph creation");
 		
 		while(toTraverse.size() != 0) {
 			current = this.getVertice(toTraverse.remove(0), vertices, toTraverse);
-			
-			current.getMetrics().feed(
+			this.getMonitor().setMessage("Treat " + current.getMetrics().getName());
+
+			current.feed(
 				current.getMetrics().getFunction(),
 				false,
 				this.flatApi
@@ -136,9 +139,15 @@ public class AnalyzeFlowcodePlugin extends ProgramPlugin {
 
 			for(Function called: current.getMetrics().getFunction().getCalledFunctions(this.getMonitor())) {
 				calledVertex = this.getVertice(new FunctionMetricsVisualVertex(called), vertices, toTraverse);
+				if(current == calledVertex) { continue; }
 				GRAPH.addEdge(new FunctionMetricsVisualEdge(current, calledVertex));
-			}
-			
+			}	
+		}
+		
+		this.getMonitor().setMessage("Begin retro-propagation");
+		for(FunctionMetricsVisualVertex f: GRAPH.getVertices()) {
+			this.getMonitor().setMessage("Treat " + f.getMetrics().getName());
+			this.propagate(f);
 		}
 		
 		return this.GRAPH;
@@ -152,14 +161,13 @@ public class AnalyzeFlowcodePlugin extends ProgramPlugin {
 		vertices.put(get.getMetrics().getName(), get);
 		toTraverse.add(get);
 		GRAPH.addVertex(get);
-		this.propagate(get, get.getMetrics().getFunction());
 		return get;
 	}
 
 	/**
 	 * This function feed all parents of current.
 	 */
-	private void propagate(FunctionMetricsVisualVertex first, Function called) {
+	private void propagate(FunctionMetricsVisualVertex first) {
 		HashSet<FunctionMetricsVisualVertex> marqued = new HashSet<>();
 		List<FunctionMetricsVisualVertex> toTraverse = new ArrayList<>();
 		FunctionMetricsVisualVertex current;
@@ -173,8 +181,8 @@ public class AnalyzeFlowcodePlugin extends ProgramPlugin {
 			marqued.add(current);
 			
 			for(FunctionMetricsVisualVertex f: GRAPH.getPredecessors(current)) {
-				f.getMetrics().feed(
-					current.getMetrics().getFunction(),
+				f.feed(
+					first.getMetrics().getFunction(),
 					true,
 					this.flatApi
 				);

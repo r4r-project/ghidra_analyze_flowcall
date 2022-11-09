@@ -19,6 +19,7 @@ import analyzeflowcode.functions.FunctionMetrics;
 import docking.GenericHeader;
 import ghidra.app.services.GoToService;
 import ghidra.graph.viewer.vertex.AbstractVisualVertex;
+import ghidra.program.flatapi.FlatProgramAPI;
 import ghidra.program.model.listing.Function;
 
 /**
@@ -37,7 +38,6 @@ public class FunctionMetricsVisualVertex extends AbstractVisualVertex {
 	public FunctionMetricsVisualVertex(Function f) {
 		this.functionMetrics = new FunctionMetrics(f);
 		this.compressed      = false;
-		this.buildComponent();
 	}
 
 	public boolean getCompressed() { return this.compressed; }
@@ -87,13 +87,8 @@ public class FunctionMetricsVisualVertex extends AbstractVisualVertex {
 		return ((FunctionMetricsVisualVertex)other).getMetrics() == this.getMetrics();
 	}
 	
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		String name = this.getMetrics().getName();
-		result = prime * result + name.hashCode();
-		return result;
+	public void feed(Function function, boolean remote, FlatProgramAPI flatProgramApi) {
+		this.functionMetrics.feed(function, remote, flatProgramApi);
 	}
 	
 	public FunctionMetrics getMetrics() { return this.functionMetrics; }
@@ -102,7 +97,8 @@ public class FunctionMetricsVisualVertex extends AbstractVisualVertex {
 	// Extends AbstractVisualVertex
 	//
 	@Override
-	public JComponent getComponent() {		
+	public JComponent getComponent() {
+		this.buildComponent();
 		return this.panel;
 	}
 

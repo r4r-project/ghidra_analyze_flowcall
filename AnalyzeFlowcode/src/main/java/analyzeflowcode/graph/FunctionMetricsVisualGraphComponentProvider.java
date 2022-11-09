@@ -13,6 +13,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import analyzeflowcode.AnalyzeFlowcodePlugin;
+import analyzeflowcode.analyzer.CountInstructionsAnalyzer;
 import analyzeflowcode.graph.layouts.FunctionMetricsGraphLayoutProvider;
 import ghidra.framework.plugintool.ComponentProviderAdapter;
 import ghidra.framework.plugintool.PluginTool;
@@ -26,11 +27,6 @@ import ghidra.util.task.TaskMonitor;
 
 public class FunctionMetricsVisualGraphComponentProvider extends ComponentProviderAdapter {
 
-	private VisualGraphView<
-		FunctionMetricsVisualVertex, 
-		FunctionMetricsVisualEdge, 
-		FunctionMetricsVisualGraph
-	> graphView;
 	private FunctionMetricsGraphLayoutProvider layoutProvider;
 	private FunctionMetricsVisualGraph graph;
 	private AnalyzeFlowcodePlugin plugin;
@@ -124,18 +120,11 @@ public class FunctionMetricsVisualGraphComponentProvider extends ComponentProvid
 			VisualGraphLayout<FunctionMetricsVisualVertex, FunctionMetricsVisualEdge> layout =
 				layoutProvider.getLayout(graph, TaskMonitor.DUMMY);
 			graph.setLayout(layout);
-		}
-		catch (CancelledException e) {
-			// can't happen as long as we are using the dummy monitor
-		}
+		} catch (CancelledException e) { }
 	}
 
-	public FunctionMetricsVisualGraph getGraph() {
-		return graph;
-	}
+	public FunctionMetricsVisualGraph getGraph() { return graph; }
 
 	@Override
-	public JComponent getComponent() {
-		return mainPanel;
-	}
+	public JComponent getComponent() { return mainPanel; }
 }
