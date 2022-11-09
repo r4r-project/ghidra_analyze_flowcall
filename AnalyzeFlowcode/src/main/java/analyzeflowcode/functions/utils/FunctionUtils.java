@@ -11,7 +11,7 @@ public class FunctionUtils {
 	public static long getMain(Program program) {
 		long addr = -1;
 		
-		for(Function f: program.getFunctionManager().getFunctions(false)) {
+		for(Function f: program.getFunctionManager().getFunctions(true)) {
 			if(f.getName().equals("main")) {
 				addr = f.getEntryPoint().getOffset();
 				break;

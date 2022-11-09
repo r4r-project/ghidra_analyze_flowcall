@@ -1,5 +1,6 @@
 package analyzeflowcode.analyzer;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
 
@@ -26,14 +27,14 @@ public class CountInstructionsAnalyzer extends FunctionAnalyzer {
 	
 	private boolean done   = false;
 	private long    count  = 0;	
-	private JPanel  panel  = new JPanel(new FlowLayout());
+	private JPanel  panel  = new JPanel(new BorderLayout());
 	private JLabel  jcount = new JLabel();
 			
 	public CountInstructionsAnalyzer() {
 		this.panel.setVisible(true);
 		this.jcount.setVisible(true);
-		this.panel.setBorder(BorderFactory.createTitledBorder(this.getName()));
-		this.panel.add(this.jcount);
+		this.panel.add(new JLabel(this.getName()), BorderLayout.NORTH);
+		this.panel.add(this.jcount, BorderLayout.CENTER);
 		this.jcount.setAlignmentX(Component.CENTER_ALIGNMENT);
 		this.jcount.setAlignmentY(Component.CENTER_ALIGNMENT);
 	}

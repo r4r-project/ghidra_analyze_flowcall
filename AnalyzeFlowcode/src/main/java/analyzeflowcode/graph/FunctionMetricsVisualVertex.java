@@ -1,5 +1,6 @@
 package analyzeflowcode.graph;
 
+import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -7,8 +8,10 @@ import java.awt.event.MouseListener;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import aQute.bnd.service.Plugin;
 import analyzeflowcode.analyzer.FunctionAnalyzer;
 import analyzeflowcode.functions.FunctionMetrics;
 import ghidra.app.services.GoToService;
@@ -24,11 +27,9 @@ import ghidra.program.model.listing.Function;
 public class FunctionMetricsVisualVertex extends AbstractVisualVertex {
 
 	private FunctionMetrics functionMetrics;
-	private GoToService goTo;
 	
-	public FunctionMetricsVisualVertex(Function f, GoToService goTo) {
+	public FunctionMetricsVisualVertex(Function f) {
 		this.functionMetrics = new FunctionMetrics(f);
-		this.goTo = goTo;
 	}
 	
 	/**
@@ -57,44 +58,20 @@ public class FunctionMetricsVisualVertex extends AbstractVisualVertex {
 		JPanel temp_panel = new JPanel(new FlowLayout());		
 		JPanel panel = new JPanel();
 		
-		panel.setBorder(BorderFactory.createTitledBorder(this.getMetrics().getName()));
-		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-		temp_panel.setVisible(true);
-
+		panel.setLayout(new BorderLayout());
+		panel.add(new JLabel(this.getMetrics().getName()), BorderLayout.NORTH);
+		
 		for(FunctionAnalyzer a: this.getMetrics().getAnalyzers()) {
 			if(counter == 2) {
 				panel.add(temp_panel);
 				temp_panel = new JPanel(new FlowLayout());
-				temp_panel.setVisible(true);
 			}
 			counter = (counter+1)%2;
-			JPanel temp_comp = a.getComponent();
-			temp_comp.setVisible(true);
-			temp_panel.add(temp_comp);
+			temp_panel.add(a.getComponent());
 		}
-		panel.setVisible(true);	
-		
-		panel.addMouseListener(new MouseListener() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				goTo.goTo(getMetrics().getFunction().getEntryPoint());
-			}
 
-			@Override
-			public void mousePressed(MouseEvent e) {}
+		if(counter != 2) { panel.add(temp_panel); }
 
-			@Override
-			public void mouseReleased(MouseEvent e) {}
-
-			@Override
-			public void mouseEntered(MouseEvent e) {}
-
-			@Override
-			public void mouseExited(MouseEvent e) {}
-		});
-		
-		panel.setS
-		
 		return panel;
 	}
 

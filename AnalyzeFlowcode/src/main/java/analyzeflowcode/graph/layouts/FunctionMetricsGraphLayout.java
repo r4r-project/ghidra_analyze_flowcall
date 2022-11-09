@@ -47,15 +47,28 @@ public class FunctionMetricsGraphLayout extends AbstractVisualGraphLayout<Functi
 		GridLocationMap<FunctionMetricsVisualVertex, FunctionMetricsVisualEdge> results = new GridLocationMap<>();
 		List<List<FunctionMetricsVisualVertex>> rows = this.getRows(g);
 		List<FunctionMetricsVisualVertex> columns;
+		int maxColumns = this.getMax(rows);
+		int centering;
 		
 		for(int i = 0; i<rows.size(); i++) {
 			columns = rows.get(i);
+			centering = (maxColumns-columns.size())/2;
 			for(int j = 0; j<columns.size(); j++) {
-				results.set(columns.get(j), i, j);
+				results.set(columns.get(j), i, j+centering);
 			}
 		}
 		
 		return results;
+	}
+
+	private int getMax(List<List<FunctionMetricsVisualVertex>> rows) {
+		int w = 0;
+		
+		for(List<FunctionMetricsVisualVertex> r: rows) {
+			w = Math.max(w, r.size());
+		}
+		
+		return w;
 	}
 
 	private List<List<FunctionMetricsVisualVertex>> getRows(
@@ -73,7 +86,6 @@ public class FunctionMetricsGraphLayout extends AbstractVisualGraphLayout<Functi
 				if(marqued.contains(traversed)) { continue; }
 				marqued.add(traversed);
 				for(FunctionMetricsVisualVertex s: g.getSuccessors(traversed)) {
-					if(marqued.contains(traversed)) { continue; }
 					toTraverse.add(s);
 				}
 			}
